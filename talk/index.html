@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>We Need to Talk Simulator · OddlyHuman</title>
+<meta name="description" content="6 scary texts. How does your brain react? Find your Overthinking Score and which OddlyHuman you are.">
+<meta property="og:title" content="We Need to Talk Simulator">
+<meta property="og:description" content="6 scary texts. Find your Overthinking Score. Yellow, Purple or Mint?">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg1:#1b2150; --bg2:#0b0f26; --ink:#f4f5ff; --dim:#a9aed6;
+  --y:#F7D774; --p:#B9A6EE; --m:#A8D8B9; --blue:#3B82F6; --gray:#2a3062;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{background:#0b0f26}html,body{min-height:100%}
+body{font-family:Poppins,system-ui,sans-serif;color:var(--ink);
+  background:radial-gradient(120% 80% at 50% 0%,var(--bg1),var(--bg2) 70%) fixed;overflow-x:hidden}
+.stars{position:fixed;inset:0;pointer-events:none;background-image:
+  radial-gradient(1px 1px at 12% 18%,#fff8,transparent),radial-gradient(1px 1px at 72% 9%,#fff6,transparent),
+  radial-gradient(1.5px 1.5px at 85% 30%,#fff7,transparent),radial-gradient(1px 1px at 30% 40%,#fff5,transparent),
+  radial-gradient(1px 1px at 55% 22%,#fff6,transparent),radial-gradient(1.5px 1.5px at 20% 70%,#fff4,transparent)}
+.moon{position:fixed;top:38px;right:28px;width:34px;height:34px;border-radius:50%;background:#fbf3c8;box-shadow:0 0 40px #fbf3c866;opacity:.5;z-index:0}
+.wrap{position:relative;z-index:1;max-width:440px;margin:0 auto;padding:20px 18px 40px;min-height:100%}
+.brand{text-align:center;font-size:11px;letter-spacing:3px;color:var(--dim);font-weight:600;margin-bottom:14px}
+.screen{display:none;animation:fade .35s ease}
+.screen.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+h1{font-size:30px;line-height:1.15;font-weight:800;text-align:center}
+h1 span{color:var(--y)}
+.sub{color:var(--dim);text-align:center;margin:10px 0 18px;font-size:15px}
+.chars{display:flex;justify-content:center;gap:10px;margin:18px 0 8px}
+.chars svg{width:86px;height:auto}
+.notif{background:#ffffff14;backdrop-filter:blur(10px);border:1px solid #ffffff1f;border-radius:18px;padding:12px 14px;display:flex;gap:10px;align-items:center;margin:18px 0}
+.notif .ic{width:38px;height:38px;border-radius:10px;background:#34c759;display:grid;place-items:center;font-size:20px;flex:none}
+.notif b{font-size:13px}.notif p{font-size:15px}
+.notif small{margin-left:auto;color:var(--dim);font-size:11px;align-self:flex-start}
+.btn{display:block;width:100%;border:0;border-radius:999px;padding:16px;font:700 17px Poppins,sans-serif;
+  background:var(--y);color:#2a2340;cursor:pointer;box-shadow:0 6px 0 #c9a94a;transition:transform .1s}
+.btn:active{transform:translateY(3px);box-shadow:0 3px 0 #c9a94a}
+.btn.ghost{background:#ffffff14;color:var(--ink);box-shadow:none;border:1px solid #ffffff2a;font-weight:600}
+.small{font-size:12px;color:var(--dim);text-align:center;margin-top:12px}
+
+/* question */
+.top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.dots{display:flex;gap:5px}
+.dots i{width:22px;height:5px;border-radius:9px;background:#ffffff22}
+.dots i.done{background:var(--p)}
+.panic{margin-left:auto;font-size:11px;color:var(--dim);display:flex;align-items:center;gap:6px}
+.bar{width:80px;height:8px;border-radius:9px;background:#ffffff1c;overflow:hidden}
+.bar b{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--m),var(--y),#ff6b8b);transition:width .6s}
+.phone{background:#0e1230;border:1px solid #ffffff1a;border-radius:26px;padding:14px;min-height:190px}
+.who{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid #ffffff12;margin-bottom:12px}
+.av{width:34px;height:34px;border-radius:50%;background:var(--gray);display:grid;place-items:center;font-size:18px}
+.who b{font-size:14px}.who small{display:block;font-size:11px;color:var(--dim)}
+.msgs{display:flex;flex-direction:column;gap:8px}
+.bub{max-width:82%;padding:10px 14px;border-radius:20px;font-size:15px;line-height:1.35;animation:pop .3s ease}
+.bub.in{background:var(--gray);align-self:flex-start;border-bottom-left-radius:6px}
+.bub.out{background:var(--blue);align-self:flex-end;border-bottom-right-radius:6px}
+.meta{align-self:flex-end;font-size:11px;color:var(--dim);margin-top:-4px}
+.typing{display:inline-flex;gap:4px}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--dim);animation:bl 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes bl{50%{opacity:.25}}
+@keyframes pop{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+.ask{font-weight:700;margin:18px 2px 10px;font-size:15px}
+.opts{display:flex;flex-direction:column;gap:9px}
+.opt{text-align:left;border:1.5px solid #ffffff2a;background:#ffffff0d;color:var(--ink);border-radius:18px;padding:13px 16px;
+  font:600 15px Poppins,sans-serif;cursor:pointer;transition:.2s}
+.opt:active{transform:scale(.98)}
+.opt.pick{background:var(--blue);border-color:var(--blue)}
+.opt.fade{opacity:.3}
+.react{display:none;align-items:flex-end;gap:10px;margin-top:16px;animation:fade .4s}
+.react svg{width:64px;flex:none}
+.react .say{background:#fff;color:#1d1f3a;font-weight:700;padding:10px 14px;border-radius:18px 18px 18px 6px;font-size:14px}
+.truth{display:none;margin-top:14px;animation:fade .4s}
+.truth .lbl{font-size:12px;color:var(--y);font-weight:700;letter-spacing:1px;margin-bottom:6px}
+.next{display:none;margin-top:18px}
+
+/* result */
+.card{background:linear-gradient(180deg,#232a66,#141838);border:1px solid #ffffff1f;border-radius:28px;padding:22px 18px;text-align:center;position:relative;overflow:hidden}
+.card .k{font-size:12px;letter-spacing:2px;color:var(--dim);font-weight:600}
+.score{font-size:64px;font-weight:800;line-height:1;margin:6px 0 2px}
+.tier{font-weight:600;color:var(--dim);font-size:14px}
+.meter{height:12px;border-radius:9px;background:#ffffff1a;margin:14px 6px 4px;overflow:hidden}
+.meter b{display:block;height:100%;width:0;border-radius:9px;background:linear-gradient(90deg,var(--m),var(--y),#ff6b8b);transition:width 1.4s cubic-bezier(.2,.8,.2,1)}
+.big svg{width:120px;margin:18px auto 4px;display:block}
+.rname{font-size:26px;font-weight:800}
+.rline{color:#dfe1ff;margin:8px 4px 0;font-size:15px}
+.box{background:#ffffff0d;border:1px solid #ffffff1a;border-radius:22px;padding:16px;margin-top:14px}
+.box h3{font-size:15px;margin-bottom:10px}
+.box li{list-style:none;padding:7px 0;border-bottom:1px solid #ffffff10;font-size:14px}
+.box li:last-child{border:0}
+.fact{font-size:14px;color:#dfe1ff}
+.fact b{color:var(--y)}
+.lock{position:relative}
+.lock .blur{filter:blur(6px);user-select:none;pointer-events:none}
+.lock .over{position:absolute;inset:44px 0 0 0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px;padding:10px;text-align:center}
+.lock .over p{font-weight:700;font-size:14px}
+.btn.buy{background:var(--p);color:#221a40;box-shadow:0 6px 0 #8a78c4}
+.row{display:flex;gap:10px;margin-top:12px}
+.row .btn{font-size:15px;padding:14px}
+.mix{display:flex;justify-content:space-around;margin-top:4px}
+.mix div{text-align:center;font-size:12px;color:var(--dim)}
+.mix svg{width:44px;display:block;margin:0 auto 4px}
+.mix b{display:block;color:var(--ink);font-size:16px}
+.chips{display:flex;gap:8px;justify-content:center;margin:4px 0 12px}
+.chip{border:1.5px solid #ffffff33;background:transparent;color:var(--ink);font:600 14px Poppins,sans-serif;padding:7px 16px;border-radius:999px;cursor:pointer}
+.chip.on{background:var(--ink);color:#1b2150;border-color:var(--ink)}
+.prev{display:block;width:62%;margin:0 auto 4px;border-radius:18px;box-shadow:0 12px 30px #0008;aspect-ratio:9/16;background:#ffffff10}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#fff;color:#1d1f3a;font-weight:700;padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;transition:.3s;pointer-events:none}
+.toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div class="stars"></div><div class="moon"></div>
+<div class="wrap">
+  <div class="brand">ODDLYHUMAN</div>
+
+  <!-- INTRO -->
+  <section class="screen on" id="intro">
+    <h1>The <span>“We Need to Talk”</span> Simulator</h1>
+    <p class="sub">6 scary texts. One honest brain.<br>Find your Overthinking Score.</p>
+    <div class="notif">
+      <div class="ic">💬</div>
+      <div><b>Unknown</b><p>We need to talk.</p></div>
+      <small>now</small>
+    </div>
+    <div class="chars" id="introChars"></div>
+    <p class="sub" style="margin:4px 0 20px">Yellow, Purple or Mint… which one are you?</p>
+    <button class="btn" id="startBtn">Open the message</button>
+    <p class="small">Takes 60 seconds · no sign-up</p>
+  </section>
+
+  <!-- QUESTION -->
+  <section class="screen" id="quiz">
+    <div class="top">
+      <div class="dots" id="dots"></div>
+      <div class="panic">PANIC <div class="bar"><b id="panicBar"></b></div></div>
+    </div>
+    <div class="phone">
+      <div class="who"><div class="av" id="qAv"></div><div><b id="qFrom"></b><small id="qStatus"></small></div></div>
+      <div class="msgs" id="msgs"></div>
+    </div>
+    <div class="ask" id="ask">Your brain's first move:</div>
+    <div class="opts" id="opts"></div>
+    <div class="react" id="react"></div>
+    <div class="truth" id="truth">
+      <div class="lbl">WHAT THEY ACTUALLY MEANT</div>
+      <div class="msgs"><div class="bub in" id="truthText"></div></div>
+    </div>
+    <button class="btn next" id="nextBtn">Next message →</button>
+  </section>
+
+  <!-- RESULT -->
+  <section class="screen" id="result">
+    <div class="card" id="resCard">
+      <div class="k">YOUR OVERTHINKING SCORE</div>
+      <div class="score" id="rScore">0%</div>
+      <div class="tier" id="rTier"></div>
+      <div class="meter"><b id="rMeter"></b></div>
+      <div class="big" id="rChar"></div>
+      <div class="k" style="margin-top:6px">YOU ARE</div>
+      <div class="rname" id="rName"></div>
+      <p class="rline" id="rLine"></p>
+    </div>
+
+    <div class="box">
+      <h3>Your brain, in numbers</h3>
+      <div class="mix" id="rMix"></div>
+    </div>
+
+    <div class="box">
+      <p class="fact">Out of 6 scary messages, <b>0 were actually bad news.</b></p>
+      <p class="fact" style="margin-top:8px" id="rMove"></p>
+    </div>
+
+    <div class="box">
+      <h3 id="rTraitsH">Classic signs</h3>
+      <ul id="rTraits"></ul>
+    </div>
+
+    <div class="box lock">
+      <h3>🔒 Your 3 hidden overthinking triggers</h3>
+      <ul class="blur">
+        <li>When someone's tone changes over text you assume…</li>
+        <li>Your spiral starts strongest at night because…</li>
+        <li>The one sentence that stops it in 10 seconds is…</li>
+      </ul>
+      <div class="over">
+        <p id="buyText"></p>
+        <a class="btn buy" id="buyBtn" target="_blank" rel="noopener" style="width:auto;padding:12px 22px;text-decoration:none"></a>
+      </div>
+    </div>
+
+    <div class="box" style="text-align:center">
+      <h3>Post it to your story 📸</h3>
+      <div class="chips"><button class="chip on" data-style="cute">💜 Cute</button><button class="chip" data-style="receipt">🧾 Receipt</button></div>
+      <img id="cardPrev" class="prev" alt="Your story card">
+      <div class="row">
+        <button class="btn" id="shareImg">Share to story</button>
+        <button class="btn ghost" id="shareLink">Copy link</button>
+      </div>
+      <p class="small">Tag the friend who texts “we need to talk” 😭</p>
+    </div>
+
+    <button class="btn ghost" id="again" style="margin-top:14px">Try again</button>
+    <p class="small">Made by @oddlyhuman · just for fun, not a diagnosis</p>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ====== SETTINGS: edit these ====== */
+const BUY_URL   = "https://heyoddlyhuman.gumroad.com/l/overthinking";
+const BUY_PRICE = "$4.99";
+const BUY_NAME  = "the Overthinking Guide";
+const HANDLE    = "@oddlyhuman";
+const GOATCOUNTER = "";            // your GoatCounter code, e.g. "oddlyhuman" (optional)
+/* ================================== */
+
+const COL = {Y:"#F7D774", P:"#B9A6EE", M:"#A8D8B9"};
+const NAME = {Y:"Yellow", P:"Purple", M:"Mint"};
+
+function charSVG(c, face){
+  const col = COL[c];
+  const eyes = {
+    calm:  '<circle cx="42" cy="44" r="3.5" fill="#1d1f3a"/><circle cx="58" cy="44" r="3.5" fill="#1d1f3a"/>',
+    shock: '<circle cx="41" cy="43" r="6" fill="#fff"/><circle cx="59" cy="43" r="6" fill="#fff"/><circle cx="41" cy="44" r="3" fill="#1d1f3a"/><circle cx="59" cy="44" r="3" fill="#1d1f3a"/>',
+    meh:   '<path d="M35 44h12M53 44h12" stroke="#1d1f3a" stroke-width="3.5" stroke-linecap="round"/><path d="M36 39h10M54 39h10" stroke="#1d1f3a" stroke-width="2" stroke-linecap="round" opacity=".6"/>',
+    happy: '<path d="M36 45q5-6 10 0M54 45q5-6 10 0" stroke="#1d1f3a" stroke-width="3" fill="none" stroke-linecap="round"/>',
+    worry: '<circle cx="42" cy="45" r="5" fill="#fff"/><circle cx="58" cy="45" r="5" fill="#fff"/><circle cx="43" cy="45" r="2.6" fill="#1d1f3a"/><circle cx="59" cy="45" r="2.6" fill="#1d1f3a"/><path d="M35 39l10-4M65 39l-10-4" stroke="#1d1f3a" stroke-width="2.5" stroke-linecap="round"/>'
+  }[face];
+  const mouth = {
+    calm:'<path d="M45 56h10" stroke="#1d1f3a" stroke-width="3" stroke-linecap="round"/>',
+    shock:'<ellipse cx="50" cy="58" rx="5" ry="6.5" fill="#1d1f3a"/>',
+    meh:'<path d="M45 57h10" stroke="#1d1f3a" stroke-width="3" stroke-linecap="round"/>',
+    happy:'<path d="M42 54q8 9 16 0" fill="#1d1f3a"/>',
+    worry:'<path d="M44 59q6-4 12 0" stroke="#1d1f3a" stroke-width="3" fill="none" stroke-linecap="round"/>'
+  }[face];
+  const blush = (face==="happy"||face==="shock") ? '<ellipse cx="32" cy="52" rx="5" ry="3" fill="#ff8fa3" opacity=".5"/><ellipse cx="68" cy="52" rx="5" ry="3" fill="#ff8fa3" opacity=".5"/>' : '';
+  return `<svg viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="50" cy="124" rx="34" ry="5" fill="#000" opacity=".25"/>
+    <rect x="22" y="62" width="56" height="62" rx="24" fill="${col}"/>
+    <rect x="28" y="70" width="8" height="40" rx="4" fill="#fff" opacity=".18"/>
+    <circle cx="50" cy="46" r="30" fill="${col}"/>
+    <ellipse cx="38" cy="30" rx="8" ry="5" fill="#fff" opacity=".25"/>
+    ${eyes}${mouth}${blush}</svg>`;
+}
+
+const Q = [
+ {short:`"We need to talk."`, from:"Best friend", av:"🫶", status:"online", show:[["in","We need to talk."]],
+  real:"do you have a charger?",
+  opts:[["CALL THEM. NOW.","Y",2],["List every mistake I've made since 2019","P",3],["“talk.”","M",0],["Type “about what?” and delete it 4 times","P",2]]},
+ {short:`"Got a minute?"`, from:"Boss", av:"💼", status:"Work", show:[["in","Got a minute? Come to my office."]],
+  real:"Can you sign Dave's birthday card? 🎂",
+  opts:[["Walk in smiling, ready to chat","Y",1],["Mentally pack my desk into a box","P",3],["Finish my coffee first","M",0],["Rehearse 4 excuses on the way","P",2]]},
+ {short:`Seen 2h ago`, from:"Your crush", av:"✨", status:"last seen 2h ago", show:[["out","…and that's why I think penguins are underrated"],["meta","Seen 2h ago"]],
+  real:"omg sorry I fell asleep 😭 penguins ARE underrated",
+  opts:[["Double text. Triple text.","Y",1],["Reread my message 40 times looking for the mistake","P",3],["They're busy. Go eat something.","M",0],["Start planning my new life without them","P",3]]},
+ {short:`Group chat: silence`, from:"Group chat 🎉 (6)", av:"👥", status:"6 members", show:[["out","what do you call a lazy kangaroo? a pouch potato 🦘"],["meta","Delivered · 38 min ago · no replies"]],
+  real:"(they were all in the same movie. phones off.)",
+  opts:[["Send another joke to fix it","Y",1],["Leave the group. Change my name. Move.","P",3],["Their loss. It was funny.","M",0],["Google “how to be funny”","P",2]]},
+ {short:`"Call me when you can."`, from:"Mom", av:"👩", status:"mobile", show:[["in","Call me when you can."]],
+  real:"What's the wifi password?",
+  opts:[["Call instantly, heart racing","Y",2],["Who's sick. Who died. What did I do.","P",3],["Call after this episode","M",0],["Check the family chat for clues first","P",2]]},
+ {short:`"ok."`, from:"Friend", av:"🙂", status:"online", show:[["out","ok I'll be there at 7!! can't wait 🥳"],["in","ok."]],
+  real:"(they type like that. they always have.)",
+  opts:[["“ok?? are you mad?? 😭”","Y",2],["Analyze that period like a detective","P",3],["“ok.” back. Balance restored.","M",0],["Apologize for something. Anything.","P",2]]}
+];
+const MAX = Q.reduce((a,q)=>a+Math.max(...q.opts.map(o=>o[2])),0);
+
+const REACT = {
+  Y:["WAIT what happened 😭📞","calling. calling. calling.","I'll just ask!! 🗣️"],
+  P:["possible reasons: 25","…what did I do","*rereads it 40 times*"],
+  M:["k.","talk.","later."]
+};
+const FACE = {Y:"shock", P:"worry", M:"meh"};
+
+const RES = {
+  P:{title:"Purple · The 25 Reasons", line:"Your brain writes the worst story first. Then reads it out loud. At 3am.",
+     traits:["Reads “ok.” like a legal document","Has rehearsed fights that never happened","Notices everything (it's a superpower, honestly)","Is usually the kindest person in the room"]},
+  Y:{title:"Yellow · The Instant Caller", line:"You don't overthink. You over-call. Silence is the enemy and you will defeat it.",
+     traits:["Has called someone while they were still typing","Double texts with zero shame","Turns panic into a 47-minute voice note","Fixes things fast (sometimes too fast)"]},
+  M:{title:"Mint · The “talk.”", line:"Unbothered. Replies in one word. (Secretly checked the message 3 times.)",
+     traits:["“k.” is a complete sentence","Finishes the episode first","Panics quietly, which still counts","Everyone's calm friend in a crisis"]}
+};
+function tier(s){
+  if(s<=25) return "Calm lake 🌊";
+  if(s<=50) return "Mild spiral 🌀";
+  if(s<=75) return "Certified overthinker 🧠";
+  if(s<=90) return "Full Purple mode 💜";
+  return "Already moved countries in your head ✈️";
+}
+
+/* ---------- state ---------- */
+let i=0, score=0, picks=[], counts={Y:0,P:0,M:0};
+const $=id=>document.getElementById(id);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+function track(name){
+  try{ if(window.goatcounter && goatcounter.count) goatcounter.count({path:name, title:name, event:true}); }catch(e){}
+}
+if(GOATCOUNTER){
+  const s=document.createElement("script");
+  s.async=true; s.src="//gc.zgo.at/count.js"; s.dataset.goatcounter=`https://${GOATCOUNTER}.goatcounter.com/count`;
+  document.head.appendChild(s);
+}
+
+$("introChars").innerHTML = charSVG("Y","shock")+charSVG("P","worry")+charSVG("M","meh");
+$("dots").innerHTML = Q.map(()=>"<i></i>").join("");
+
+function show(id){ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on")); $(id).classList.add("on"); window.scrollTo({top:0,behavior:"smooth"}); }
+
+$("startBtn").onclick=()=>{ track("start"); i=0; score=0; picks=[]; counts={Y:0,P:0,M:0}; show("quiz"); renderQ(); };
+
+async function renderQ(){
+  const q=Q[i];
+  document.querySelectorAll("#dots i").forEach((d,k)=>d.classList.toggle("done",k<i));
+  $("qAv").textContent=q.av; $("qFrom").textContent=q.from; $("qStatus").textContent=q.status;
+  ["react","truth","nextBtn"].forEach(x=>$(x).style.display="none");
+  $("opts").innerHTML=""; $("ask").style.visibility="hidden";
+  const box=$("msgs"); box.innerHTML="";
+  for(const [kind,text] of q.show){
+    if(kind==="in"){
+      const t=document.createElement("div"); t.className="bub in"; t.innerHTML='<span class="typing"><i></i><i></i><i></i></span>';
+      box.appendChild(t); await sleep(900); t.textContent=text;
+    }else if(kind==="out"){
+      const b=document.createElement("div"); b.className="bub out"; b.textContent=text; box.appendChild(b); await sleep(450);
+    }else{
+      const m=document.createElement("div"); m.className="meta"; m.textContent=text; box.appendChild(m); await sleep(500);
+    }
+  }
+  $("ask").style.visibility="visible";
+  // shuffle options so positions vary
+  const order=q.opts.map((o,k)=>k).sort(()=>Math.random()-.5);
+  order.forEach(k=>{
+    const [t,c,s]=q.opts[k];
+    const b=document.createElement("button"); b.className="opt"; b.textContent=t;
+    b.onclick=()=>choose(b,t,c,s); $("opts").appendChild(b);
+  });
+}
+
+async function choose(btn,t,c,s){
+  document.querySelectorAll(".opt").forEach(o=>{o.disabled=true; if(o!==btn) o.classList.add("fade");});
+  btn.classList.add("pick");
+  score+=s; counts[c]++; picks.push({t,c,s,q:i});
+  $("panicBar").style.width=Math.round(score/MAX*100)+"%";
+  const r=$("react"); const line=REACT[c][Math.floor(Math.random()*3)];
+  r.innerHTML=charSVG(c,FACE[c])+`<div class="say">${line}</div>`; r.style.display="flex";
+  await sleep(1000);
+  $("truthText").textContent=Q[i].real; $("truth").style.display="block";
+  await sleep(500);
+  $("nextBtn").textContent = i===Q.length-1 ? "See my result →" : "Next message →";
+  $("nextBtn").style.display="block";
+  $("nextBtn").scrollIntoView({behavior:"smooth",block:"end"});
+}
+$("nextBtn").onclick=()=>{ i++; if(i<Q.length) renderQ(); else showResult(); };
+
+let RESULT=null;
+function showResult(){
+  track("finish");
+  document.querySelectorAll("#dots i").forEach(d=>d.classList.add("done"));
+  const pct=Math.round(score/MAX*100);
+  let max=Math.max(counts.Y,counts.P,counts.M);
+  let tied=["Y","P","M"].filter(k=>counts[k]===max);
+  let type=tied.length===1?tied[0]:[...picks].reverse().find(p=>tied.includes(p.c)).c;
+  const R=RES[type];
+  RESULT={pct,type,title:R.title};
+  show("result");
+  $("rTier").textContent=tier(pct);
+  $("rChar").innerHTML=charSVG(type,type==="Y"?"happy":FACE[type]);
+  $("rName").textContent=R.title; $("rName").style.color=COL[type];
+  $("rLine").textContent=R.line;
+  $("rTraits").innerHTML=R.traits.map(x=>`<li>${x}</li>`).join("");
+  $("rMix").innerHTML=["Y","P","M"].map(k=>`<div>${charSVG(k,FACE[k])}<b>${counts[k]}/6</b>${NAME[k]}</div>`).join("");
+  const worst=picks.reduce((a,b)=>b.s>a.s?b:a,picks[0]);
+  $("rMove").innerHTML = worst.s>0
+    ? `Your brain's wildest move: <b>“${worst.t.replace(/[“”]/g,"")}”</b>`
+    : `You didn't panic once. Are you okay? Blink twice. 👀`;
+  // count-up score
+  let n=0; const tick=setInterval(()=>{ n+=Math.max(1,Math.round(pct/30)); if(n>=pct){n=pct;clearInterval(tick);} $("rScore").textContent=n+"%"; },35);
+  setTimeout(()=>$("rMeter").style.width=pct+"%",100);
+  STYLE="cute"; CACHE={}; document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("on",c.dataset.style==="cute")); renderPreview();
+  // upsell
+  if(BUY_URL){
+    $("buyText").textContent=`Unlock them in ${BUY_NAME} + a 7-day reset`;
+    $("buyBtn").textContent=`Get it · ${BUY_PRICE}`;
+    $("buyBtn").href=BUY_URL; $("buyBtn").onclick=()=>track("buy-tap");
+  }else{
+    $("buyText").textContent=`Full guide coming soon. Follow ${HANDLE} so you don't miss it.`;
+    $("buyBtn").textContent="Follow on Instagram";
+    $("buyBtn").href="https://instagram.com/"+HANDLE.replace("@",""); $("buyBtn").onclick=()=>track("follow-tap");
+  }
+}
+
+$("again").onclick=()=>{ $("panicBar").style.width="0"; $("rMeter").style.width="0"; show("intro"); };
+
+function toast(t){ const el=$("toast"); el.textContent=t; el.classList.add("on"); setTimeout(()=>el.classList.remove("on"),1800); }
+const shareText=()=>`I got ${RESULT.pct}% Overthinking Score 😭 I'm ${NAME[RESULT.type]}. Which one are you?`;
+
+$("shareLink").onclick=async()=>{
+  track("share-link");
+  const url=location.href.split("#")[0];
+  if(navigator.share){ try{ await navigator.share({title:"We Need to Talk Simulator",text:shareText(),url}); return; }catch(e){ if(e.name==="AbortError") return; } }
+  try{ await navigator.clipboard.writeText(shareText()+" "+url); toast("Link copied!"); }catch(e){ prompt("Copy this:",url); }
+};
+
+/* ---------- story cards (1080x1920) ---------- */
+let STYLE="cute", CACHE={};
+const PAL={
+  Y:{bg1:"#FFF7D6",bg2:"#FFE08A",ink:"#3a2e12",acc:"#D9A520",tag:"M"},
+  P:{bg1:"#F3EEFF",bg2:"#CDBDF7",ink:"#2b2150",acc:"#7d63d6",tag:"Y"},
+  M:{bg1:"#EAF9EF",bg2:"#B5E3C6",ink:"#173826",acc:"#3a9a63",tag:"P"}
+};
+const THOUGHT={Y:"WAIT what happened 😭",P:"possible reasons: 25",M:"k."};
+function rr(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function svgToImg(svg){ return new Promise(res=>{ const im=new Image(); im.onload=()=>res(im); im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg); }); }
+function fit(ctx,t,max){ if(ctx.measureText(t).width<=max) return t; while(t.length>1 && ctx.measureText(t+"…").width>max) t=t.slice(0,-1); return t.trimEnd()+"…"; }
+function star(ctx,x,y,r){ ctx.beginPath(); for(let k=0;k<8;k++){ const a=k*Math.PI/4, rad=k%2?r*.35:r; ctx.lineTo(x+Math.cos(a)*rad,y+Math.sin(a)*rad);} ctx.closePath(); ctx.fill(); }
+async function fontsReady(){ try{ await Promise.all([document.fonts.load('800 60px Poppins'),document.fonts.load('600 40px Poppins'),document.fonts.load('700 40px "Space Mono"'),document.fonts.load('400 40px "Space Mono"')]); }catch(e){} }
+
+async function cuteCard(){
+  const R=RESULT, t=PAL[R.type];
+  const c=document.createElement("canvas"); c.width=1080; c.height=1920; const x=c.getContext("2d");
+  const g=x.createLinearGradient(0,0,0,1920); g.addColorStop(0,t.bg1); g.addColorStop(1,t.bg2); x.fillStyle=g; x.fillRect(0,0,1080,1920);
+  // sparkles + dots
+  x.fillStyle="#ffffffcc"; [[110,520,26],[960,700,34],[150,1120,20],[930,1180,24],[880,430,16],[220,820,14]].forEach(([a,b,r])=>star(x,a,b,r));
+  x.fillStyle="#ffffff88"; for(let k=0;k<26;k++){ x.beginPath(); x.arc((k*331)%1080,(k*577)%1920,(k%3)*3+3,0,7); x.fill(); }
+  x.textAlign="center"; x.fillStyle=t.acc; x.font="700 30px Poppins"; x.fillText("O D D L Y H U M A N",540,150);
+  // notification
+  x.save(); x.shadowColor="#00000022"; x.shadowBlur=30; x.shadowOffsetY=10; rr(x,110,200,860,150,40); x.fillStyle="#ffffffee"; x.fill(); x.restore();
+  rr(x,140,230,90,90,24); x.fillStyle="#34c759"; x.fill(); x.font="52px sans-serif"; x.fillText("💬",185,295);
+  x.textAlign="left"; x.fillStyle="#888"; x.font="600 28px Poppins"; x.fillText("Unknown · now",260,262);
+  x.fillStyle="#1d1f3a"; x.font="800 44px Poppins"; x.fillText("We need to talk.",260,318);
+  // character
+  const im=await svgToImg(charSVG(R.type,FACE[R.type])); x.drawImage(im,280,470,520,676);
+  // thought bubble
+  x.textAlign="center"; x.font="700 40px Poppins"; const th=THOUGHT[R.type]; const tw=Math.max(240,x.measureText(th).width+70);
+  const bx=Math.min(1040-tw,640-tw/2+150), by=420;
+  x.save(); x.shadowColor="#0000001f"; x.shadowBlur=20; rr(x,bx,by,tw,100,50); x.fillStyle="#fff"; x.fill();
+  x.beginPath(); x.arc(bx+tw*0.3,by+128,16,0,7); x.fill(); x.beginPath(); x.arc(bx+tw*0.22,by+160,9,0,7); x.fill(); x.restore();
+  x.fillStyle="#1d1f3a"; x.fillText(th,bx+tw/2,by+64);
+  // name
+  x.fillStyle=t.ink; x.font="800 96px Poppins"; x.fillText("I'm a "+NAME[R.type]+" "+({Y:"💛",P:"💜",M:"💚"})[R.type],540,1250);
+  x.fillStyle=t.acc; x.font="700 50px Poppins"; x.fillText(R.title.split("· ")[1],540,1322);
+  // score pill
+  x.save(); x.shadowColor="#00000022"; x.shadowBlur=24; x.shadowOffsetY=8; rr(x,150,1370,780,160,50); x.fillStyle="#fff"; x.fill(); x.restore();
+  x.textAlign="left"; x.fillStyle="#7a7f9e"; x.font="700 28px Poppins"; x.fillText("OVERTHINKING SCORE",210,1428);
+  rr(x,210,1458,470,36,18); x.fillStyle="#eceaf5"; x.fill();
+  const mg=x.createLinearGradient(210,0,680,0); mg.addColorStop(0,"#A8D8B9"); mg.addColorStop(.5,"#F7D774"); mg.addColorStop(1,"#ff6b8b");
+  rr(x,210,1458,Math.max(36,470*R.pct/100),36,18); x.fillStyle=mg; x.fill();
+  x.textAlign="right"; x.fillStyle="#1d1f3a"; x.font="800 92px Poppins"; x.fillText(R.pct+"%",880,1495);
+  x.textAlign="center"; x.fillStyle=t.ink; x.font="600 40px Poppins"; x.fillText(tier(R.pct),540,1590);
+  // tag sticker
+  x.save(); x.translate(540,1665); x.rotate(-0.05);
+  const st="tag your "+NAME[t.tag]+" 👉"; x.font="800 44px Poppins"; const sw=x.measureText(st).width+80;
+  rr(x,-sw/2,-44,sw,88,44); x.fillStyle=t.ink; x.fill(); x.fillStyle="#fff"; x.fillText(st,0,15); x.restore();
+  x.fillStyle=t.ink; x.globalAlpha=.75; x.font="600 32px Poppins"; x.fillText("which one are you? · "+HANDLE,540,1765); x.globalAlpha=1;
+  return c;
+}
+
+async function receiptCard(){
+  const R=RESULT, t=PAL[R.type];
+  const c=document.createElement("canvas"); c.width=1080; c.height=1920; const x=c.getContext("2d");
+  const g=x.createLinearGradient(0,0,0,1920); g.addColorStop(0,"#222a68"); g.addColorStop(1,"#0b0f26"); x.fillStyle=g; x.fillRect(0,0,1080,1920);
+  x.fillStyle="#ffffff99"; for(let k=0;k<60;k++){ x.beginPath(); x.arc((k*397)%1080,(k*613)%1920,(k%3)+1.5,0,7); x.fill(); }
+  // paper with zigzag edges
+  const L=140,Rt=940,T=190,B=1640,z=22;
+  x.save(); x.shadowColor="#0008"; x.shadowBlur=40; x.shadowOffsetY=16; x.beginPath(); x.moveTo(L,T);
+  for(let px=L;px<Rt;px+=z*2){ x.lineTo(px+z,T-z); x.lineTo(px+z*2,T); }
+  x.lineTo(Rt,B); for(let px=Rt;px>L;px-=z*2){ x.lineTo(px-z,B+z); x.lineTo(px-z*2,B); } x.closePath();
+  x.fillStyle="#fffdf6"; x.fill(); x.restore();
+  const ink="#26232f", mono=(w,sz)=>`${w} ${sz}px "Space Mono", monospace`;
+  x.textAlign="center"; x.fillStyle=ink;
+  x.font=mono(400,24); x.fillText("O D D L Y H U M A N",540,260);
+  x.font="800 58px Poppins"; x.fillText("OVERTHINKING",540,340); x.fillText("RECEIPT",540,405);
+  const d=new Date(); const ds=d.toLocaleDateString("en-GB")+"  "+d.toTimeString().slice(0,5);
+  x.font=mono(400,24); x.fillText("ORDER #"+(1000+Math.floor(Math.random()*9000))+"   "+ds,540,455);
+  x.fillText("CASHIER: YOUR BRAIN",540,490);
+  const dash=y=>{ x.save(); x.setLineDash([10,10]); x.strokeStyle="#26232f66"; x.lineWidth=3; x.beginPath(); x.moveTo(L+40,y); x.lineTo(Rt-40,y); x.stroke(); x.restore(); };
+  dash(525);
+  let y=580;
+  picks.forEach(p=>{
+    const q=Q[p.q];
+    x.textAlign="left"; x.fillStyle=ink; x.font=mono(700,30); x.fillText(fit(x,q.short,600),L+45,y);
+    x.textAlign="right"; x.fillText("+"+p.s,Rt-45,y);
+    x.textAlign="left"; x.fillStyle="#6b6878"; x.font=mono(400,23); x.fillText(fit(x,"→ "+p.t.replace(/[“”]/g,""),Rt-L-90),L+45,y+36);
+    y+=96;
+  });
+  dash(y-30);
+  const row=(a,b,yy,big)=>{ x.fillStyle=ink; x.textAlign="left"; x.font=mono(big?700:400,big?40:27); x.fillText(a,L+45,yy); x.textAlign="right"; x.fillText(b,Rt-45,yy); };
+  row("BAD NEWS RECEIVED","0",y+20);
+  row("SLEEP LOST",(Math.round(R.pct/12*2)/2)+" hrs",y+62);
+  row("FRIENDS WHO NEEDED","",y+104); row("  A CHARGER","1",y+140);
+  dash(y+175);
+  row("TOTAL",R.pct+"%",y+235,true);
+  x.textAlign="center"; x.fillStyle=t.acc; x.font="800 40px Poppins"; x.fillText(NAME[R.type].toUpperCase()+" · "+R.title.split("· ")[1].toUpperCase(),540,y+300);
+  // barcode
+  let bxp=L+130; x.fillStyle=ink; let seed=R.pct*7+3;
+  while(bxp<Rt-130){ seed=(seed*9301+49297)%233280; const w=2+Math.floor(seed/233280*7); x.fillRect(bxp,y+335,w,80); bxp+=w+3+(seed%4); }
+  x.font=mono(400,24); x.fillText("THANK YOU FOR OVERTHINKING WITH US",540,y+460);
+  // character peeking
+  const im=await svgToImg(charSVG(R.type,FACE[R.type])); x.drawImage(im,820,1430,200,260);
+  x.fillStyle="#fff"; x.font="700 44px Poppins"; x.fillText("which one are you? 👀",540,1760);
+  x.globalAlpha=.7; x.font="600 30px Poppins"; x.fillText(HANDLE,540,1810); x.globalAlpha=1;
+  return c;
+}
+
+async function makeCard(style){
+  style=style||STYLE;
+  if(CACHE[style]) return CACHE[style];
+  await fontsReady();
+  const c= style==="receipt" ? await receiptCard() : await cuteCard();
+  CACHE[style]=await new Promise(r=>c.toBlob(r,"image/png"));
+  return CACHE[style];
+}
+async function renderPreview(){
+  const b=await makeCard(STYLE); $("cardPrev").src=URL.createObjectURL(b);
+}
+document.querySelectorAll(".chip").forEach(ch=>ch.onclick=()=>{
+  STYLE=ch.dataset.style; document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("on",c===ch)); renderPreview(); track("style-"+STYLE);
+});
+
+$("shareImg").onclick=async()=>{
+  track("share-card-"+STYLE);
+  const blob=await makeCard(); const file=new File([blob],"my-overthinking-"+STYLE+".png",{type:"image/png"});
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file],text:shareText()+" "+location.href.split("#")[0]}); return; }catch(e){ if(e.name==="AbortError") return; }
+  }
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=file.name; a.click();
+  toast("Saved! Post it to your story 💜");
+};
+
+</script>
+</body>
+</html>
