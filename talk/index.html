@@ -110,6 +110,12 @@ h1 span{color:var(--y)}
 .chip{border:1.5px solid #ffffff33;background:transparent;color:var(--ink);font:600 14px Poppins,sans-serif;padding:7px 16px;border-radius:999px;cursor:pointer}
 .chip.on{background:var(--ink);color:#1b2150;border-color:var(--ink)}
 .prev{display:block;width:62%;margin:0 auto 4px;border-radius:18px;box-shadow:0 12px 30px #0008;aspect-ratio:9/16;background:#ffffff10}
+.ov{position:fixed;inset:0;background:#0b0f26;z-index:50;display:none;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:10px}
+.ov.on{display:flex}
+.ov img{max-height:72vh;max-width:100%;border-radius:16px;box-shadow:0 12px 40px #000a}
+.ov p{color:#fff;font-weight:700;text-align:center;font-size:15px;line-height:1.4}
+.ov small{color:#a9aed6;font-size:12px;text-align:center;display:block;font-weight:500}
+.ov .x{position:absolute;top:12px;right:14px;background:#ffffff22;border:0;color:#fff;width:40px;height:40px;border-radius:50%;font-size:20px}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#fff;color:#1d1f3a;font-weight:700;padding:10px 18px;border-radius:999px;font-size:14px;opacity:0;transition:.3s;pointer-events:none}
 .toast.on{opacity:1}
 </style>
@@ -209,6 +215,12 @@ h1 span{color:var(--y)}
     <button class="btn ghost" id="again" style="margin-top:14px">Try again</button>
     <p class="small">Made by @oddlyhuman · just for fun, not a diagnosis</p>
   </section>
+</div>
+<div class="ov" id="ov"><button class="x" id="ovX" aria-label="Close">✕</button>
+  <img id="ovImg" alt="Your story card">
+  <p>📸 Screenshot this or press and hold to save,<br>then post it to your Story!</p>
+  <small id="ovTip"></small>
+  <button class="btn ghost" id="ovDl" style="width:auto;padding:10px 22px;font-size:14px">Try download</button>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -524,16 +536,26 @@ document.querySelectorAll(".chip").forEach(ch=>ch.onclick=()=>{
   STYLE=ch.dataset.style; document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("on",c===ch)); renderPreview(); track("style-"+STYLE);
 });
 
+const IN_APP=/Instagram|FBAN|FBAV|TikTok|Line\//i.test(navigator.userAgent);
+function showOverlay(blob,name){
+  const url=URL.createObjectURL(blob);
+  $("ovImg").src=url;
+  $("ovTip").textContent = IN_APP ? "Tip: tap ⋯ (top right) → Open in browser for one-tap sharing." : "";
+  $("ovDl").onclick=()=>{ const a=document.createElement("a"); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove(); };
+  $("ov").classList.add("on");
+}
+$("ovX").onclick=()=>$("ov").classList.remove("on");
 $("shareImg").onclick=async()=>{
   track("share-card-"+STYLE);
-  const blob=await makeCard(); const file=new File([blob],"my-overthinking-"+STYLE+".png",{type:"image/png"});
-  if(navigator.canShare && navigator.canShare({files:[file]})){
-    try{ await navigator.share({files:[file],text:shareText()+" "+location.href.split("#")[0]}); return; }catch(e){ if(e.name==="AbortError") return; }
+  const blob = CACHE[STYLE] || await makeCard();
+  const name="my-overthinking-"+STYLE+".png";
+  let file=null; try{ file=new File([blob],name,{type:"image/png"}); }catch(e){}
+  if(!IN_APP && file && navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file]}); track("shared-ok"); return; }
+    catch(e){ if(e.name==="AbortError") return; }
   }
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=file.name; a.click();
-  toast("Saved! Post it to your story 💜");
+  showOverlay(blob,name);
 };
-
 </script>
 </body>
 </html>
