@@ -84,6 +84,11 @@ p{margin:0}
 .shot{width:100%;display:block;border-radius:22px;box-shadow:0 14px 30px rgba(43,46,74,.14)}
 .shot.rcpt{border-radius:0;box-shadow:none;filter:drop-shadow(0 12px 18px rgba(43,46,74,.16));max-width:360px;margin:0 auto}
 .hint{font-size:.78rem;color:var(--muted);text-align:center;font-weight:700}
+.sheet{position:fixed;inset:0;background:rgba(27,29,58,.82);z-index:50;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:16px}
+.sheet-in{background:#fff;border-radius:24px;padding:16px;max-width:440px;width:100%;display:flex;flex-direction:column;gap:12px;position:relative}
+.sheet-in img{width:100%;border-radius:14px;display:block;-webkit-touch-callout:default;user-select:auto}
+.sheet-tip{margin:0;padding-right:40px;font-weight:700}
+.sheet-x{position:absolute;top:10px;right:10px;width:40px;height:40px;border-radius:50%;border:0;background:var(--soft);font-size:1.1rem;cursor:pointer}
 .toast{font-size:.85rem;font-weight:800;text-align:center;color:#3c9a5f;min-height:1.2em}
 .report{display:flex;flex-direction:column;gap:10px;background:var(--soft);border-radius:18px;padding:14px}
 .rrow{display:grid;grid-template-columns:1fr 118px;gap:10px;align-items:center;font-size:.9rem;font-weight:700}
@@ -404,6 +409,7 @@ const ATYPES={
 
 /* ============ APP ============ */
 const $=id=>document.getElementById(id);
+let resKey='', imgReady=Promise.resolve();
 let mode=null, i=0, score=[], answers=[], busy=false, res=null, cardURL='', rcptURL='', view='card';
 
 // hero
@@ -425,6 +431,7 @@ if(LINKS.simulator){$('simCard').outerHTML=`<a class="qcard" href="${LINKS.simul
 
 function go(m){
   mode=m; i=0; answers=[]; score=m==='battery'?[0,0,0,0,0]:[];
+  if(typeof track==='function') track(m==='battery'?'color_quiz_start':'attach_quiz_start');
   $('home').hidden=true; $('result').hidden=true; $('quiz').hidden=false;
   try{history.replaceState(null,'','#'+m);}catch(e){}
   show(); window.scrollTo(0,0);
@@ -481,16 +488,21 @@ function finish(){
   $('quiz').hidden=true; $('result').hidden=false;
   if(mode==='battery'){
     const max=Math.max(...score); const top=score.map((v,k)=>v===max?k:-1).filter(k=>k>=0);
-    res={...BTYPES[top[Math.floor(Math.random()*top.length)]]};
+    const idx=top[Math.floor(Math.random()*top.length)];
+    res={...BTYPES[idx]}; resKey='b'+idx;
   }else{
     let A=0,V=0; AQ.forEach((q,k)=>{if(q[1]==='A')A+=answers[k];else V+=answers[k];});
-    const hiA=A>12, hiV=V>12;  // each 4–20, midpoint 12
-    const key=!hiA&&!hiV?'secure':hiA&&!hiV?'anxious':!hiA&&hiV?'dismissive':'fearful';
-    res={...ATYPES[key],key,A,V};
+    setAttach(A,V);
   }
+  track(mode==='battery'?'color_quiz_finish':'attach_quiz_finish');
   renderResult(); confetti(); window.scrollTo(0,0);
 }
 
+function setAttach(A,V){
+  const hiA=A>12, hiV=V>12;  // each 4–20, midpoint 12
+  const key=!hiA&&!hiV?'secure':hiA&&!hiV?'anxious':!hiA&&hiV?'dismissive':'fearful';
+  res={...ATYPES[key],key,A,V}; resKey='a'+A+'-'+V;
+}
 function renderResult(){
   const isB=mode==='battery';
   $('rEyebrow').textContent=isB?'Your OddlyHuman color':'Your attachment pattern (for now)';
@@ -510,28 +522,70 @@ function renderResult(){
   requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('[data-w]').forEach(e=>e.style.width=e.dataset.w+'%')));
   $('secretsTitle').textContent=isB?`3 secret signs you’re ${res.a}`:'3 signs this might be you';
   $('secrets').innerHTML=res.s.map((s,k)=>`<div class="secret ${k?'lockd':''}"><b>${k+1}</b><p>${s}</p></div>`).join('');
-  $('productCard').innerHTML=isB?product(`Get your full ${res.n} guide`,PRICES.battery,LINKS.battery,[`${res.n} ${res.emoji} ${res.nick} explained: superpowers, struggles, recharge kit`,"The full 12-question quiz for a sharper result","Every type explained, so you finally get your friends","All 3 secret signs + your full friendship matches","7-day battery tracker to find what drains you"],'Instant PDF · read on your phone')
+  $('productCard').innerHTML=isB?colorOffer()
     :product('Why Do I Feel This Way? The Attachment Pattern Guide',PRICES.attachment,LINKS.attachment,["The full 12-question quiz + a results map you plot yourself","Trigger map and “facts vs. feelings” worksheets","Toolkits for anxious, avoidant and fearful-avoidant patterns","Communication scripts that don’t rely on guilt","7-day pattern reset + printable progress tracker"],'16-page PDF workbook · based on real attachment research');
   $('bundleCard').innerHTML=bundle();
   $('other').textContent=isB?'Next: What’s my attachment pattern? 💛':'Next: Find my color 💛💜💚';
   view='card'; setTab();
   $('shotCard').removeAttribute('src'); $('shotRcpt').removeAttribute('src');
-  makeImages();
+  imgReady=makeImages();
 }
 function product(title,price,url,items,small){
-  return `<span class="eyebrow">For your result</span><h2>${title}</h2><ul class="includes">${items.map(x=>`<li>${x}</li>`).join('')}</ul><div class="price"><b>${price}</b><span>Launch price</span></div><a class="btn" href="${url}" target="_blank" rel="noopener" data-goatcounter-click="buy-${mode}-guide">Get the guide</a><p class="small">${small}</p>`;
+  return `<span class="eyebrow">For your result</span><h2>${title}</h2><ul class="includes">${items.map(x=>`<li>${x}</li>`).join('')}</ul><div class="price"><b>${price}</b><span>Launch price</span></div><a class="btn" href="${url}" target="_blank" rel="noopener" data-ev="guide">Get the guide</a><p class="small">${small}</p>`;
+}
+/* Color quiz offer (experiment: one variable changed = presentation; price, product & link unchanged) */
+function colorOffer(){
+  const items=["All five colors explained","Strengths and blind spots","Friendship compatibility","Extended 12-question quiz","7-day battery tracker"];
+  return `<span class="eyebrow">For your result</span><h2>Want to understand all five colors?</h2><p style="margin:0">Your result is just one part of the OddlyHuman universe. Discover all five personalities, their strengths, struggles, friendship matches and social-energy patterns.</p><ul class="includes">${items.map(x=>`<li>${x}</li>`).join('')}</ul><div class="price"><b>${PRICES.battery}</b><span>Launch price</span></div><a class="btn" href="${LINKS.battery}" target="_blank" rel="noopener" data-ev="guide">Explore all five colors</a><p class="small">Instant PDF · read on your phone</p>`;
 }
 function bundleSave(){const n=v=>parseFloat(String(v).replace(/[^0-9.]/g,""))||0;const sum=BUNDLE_ITEMS.reduce((a,it)=>a+n(it.price),0),b=n(PRICES.bundle);if(!sum||b>=sum)return `for all ${BUNDLE_ITEMS.length} guides`;return `instead of $${sum.toFixed(2)} · save ${Math.round((1-b/sum)*100)}%`;}
 function bundle(){
   return `<div class="sparkle"></div><span class="eyebrow">Best value · the whole shelf</span><h2>The OddlyHuman Bundle</h2><p style="color:#e6e1f5">Every guide from every quiz, in one download. Your color, your relationships and your overthinking brain.</p>
   <div class="stack">${BUNDLE_ITEMS.map(it=>`<div class="it"><span style="background:${it.color}"></span><div><b>${it.name}</b><small>${it.note}</small></div></div>`).join("")}</div>
   <div class="price"><b>${PRICES.bundle}</b><span>${bundleSave()}</span></div>
-  <a class="btn sun" href="${LINKS.bundle}" target="_blank" rel="noopener" data-goatcounter-click="buy-bundle-${mode}">Get the bundle</a>
+  <a class="btn sun" href="${LINKS.bundle}" target="_blank" rel="noopener" data-ev="bundle">Get the bundle</a>
   <p class="small" style="color:#cfc8ea">Instant PDF downloads · keep them forever</p>`;
 }
 function setTab(){
   $('tabCard').classList.toggle('on',view==='card'); $('tabRcpt').classList.toggle('on',view==='rcpt');
   $('shotCard').hidden=view!=='card'; $('shotRcpt').hidden=view!=='rcpt';
+}
+/* ============ ANALYTICS (GoatCounter events) ============
+   GoatCounter's data-goatcounter-click only binds to elements that exist at page load,
+   and the offer buttons are drawn after the quiz ends, so we count them ourselves. */
+const evQueue=[]; let evTimer=null;
+function track(name){
+  // If GoatCounter's script hasn't loaded yet (e.g. a direct #battery link), queue the event and retry for up to 15s.
+  try{
+    if(window.goatcounter && goatcounter.count){ goatcounter.count({path:name, title:name, event:true}); return; }
+    evQueue.push(name);
+    if(!evTimer){ let tries=0; evTimer=setInterval(()=>{
+      tries++;
+      if(window.goatcounter && goatcounter.count){ clearInterval(evTimer); evTimer=null; evQueue.splice(0).forEach(n=>goatcounter.count({path:n, title:n, event:true})); }
+      else if(tries>30){ clearInterval(evTimer); evTimer=null; evQueue.length=0; }
+    },500); }
+  }catch(e){}
+}
+// Clicks on the guide + bundle buttons (one listener each, so no double counting)
+[['productCard','guide'],['bundleCard','bundle']].forEach(([id])=>{
+  $(id).addEventListener('click',e=>{
+    const a=e.target.closest('a[data-ev]'); if(!a) return;
+    const isB=mode==='battery';
+    if(a.dataset.ev==='guide') track(isB?'color_guide_click':'buy-attach-guide');
+    else track(isB?'bundle_click':'buy-bundle-attach');
+  });
+});
+// Offer impression: fires once per page view, only when the color offer is actually on screen
+let offerSeen=false;
+if('IntersectionObserver' in window){
+  const io=new IntersectionObserver(es=>{
+    es.forEach(en=>{
+      if(en.isIntersecting && mode==='battery' && !$('result').hidden && !offerSeen){
+        offerSeen=true; track('color_offer_seen'); io.disconnect();
+      }
+    });
+  },{threshold:0.5});
+  io.observe($('productCard'));
 }
 $('tabCard').onclick=()=>{view='card';setTab();};
 $('tabRcpt').onclick=()=>{view='rcpt';setTab();};
@@ -639,21 +693,80 @@ function drawReceipt(ch){
 }
 async function blobFrom(url){const [h,d]=url.split(',');const bin=atob(d);const u=new Uint8Array(bin.length);for(let k=0;k<bin.length;k++)u[k]=bin.charCodeAt(k);return new Blob([u],{type:'image/png'});}
 const fileName=()=>`oddlyhuman-${(res.short||res.n).toLowerCase().replace(/[^a-z]+/g,'-').replace(/^-|-$/g,'')}-${view==='card'?'card':'receipt'}.png`;
-$('saveImg').onclick=()=>{const a=document.createElement('a');a.href=view==='card'?cardURL:rcptURL;a.download=fileName();document.body.appendChild(a);a.click();a.remove();toast('Saved! Check your downloads.');};
+/* ---- Share / save: works in normal browsers AND in Instagram / Facebook / TikTok in-app browsers ----
+   In-app browsers block downloads and usually can't share files, so there we show the image
+   full-screen (press-and-hold to save) plus a one-tap way out to Chrome/Safari that keeps the result. */
+const UA=navigator.userAgent||'';
+const IN_APP=/Instagram|FBAN|FBAV|FB_IAB|FBIOS|musical_ly|TikTok|Snapchat|Line\//i.test(UA);
+const IS_ANDROID=/Android/i.test(UA);
+const curURL=()=>view==='card'?cardURL:rcptURL;
+async function readyURL(){ if(!curURL()){ toast('Making your image…'); try{await imgReady;}catch(e){} } return curURL(); }
+function resultLink(){ return location.origin+location.pathname+(resKey?'?r='+resKey:''); }
+function copyText(t,okMsg){
+  const fallback=()=>{try{const ta=document.createElement('textarea');ta.value=t;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();ta.setSelectionRange(0,t.length);const ok=document.execCommand('copy');ta.remove();toast(ok?okMsg:t);}catch(e){toast(t);}};
+  try{ if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(t).then(()=>toast(okMsg),fallback);} else fallback(); }catch(e){fallback();}
+}
+function openExternal(){
+  const link=resultLink();
+  if(IS_ANDROID){
+    const u=new URL(link);
+    location.href=`intent://${u.host}${u.pathname}${u.search}${u.hash}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(link)};end`;
+  }else{
+    copyText(link,'Link copied!');
+    const t=$('extTip'); if(t) t.hidden=false;
+  }
+}
+function saveSheet(url){
+  let ov=$('saveSheet'); if(!ov){ov=document.createElement('div');ov.id='saveSheet';ov.className='sheet';document.body.appendChild(ov);}
+  const br=IS_ANDROID?'Chrome':'Safari';
+  ov.innerHTML=`<div class="sheet-in" role="dialog" aria-label="Save your image"><button class="sheet-x" aria-label="Close">✕</button>
+    <p class="sheet-tip">📲 <b>Press and hold the image</b>, then tap <b>${IS_ANDROID?'Download image':'Save to Photos'}</b>.</p>
+    <img src="${url}" alt="Your OddlyHuman result">
+    <button class="btn sun sm" id="openExt">Open in ${br} to share in one tap</button>
+    <p class="small" id="extTip" hidden>Link copied. Tap <b>•••</b> at the top right, then <b>Open in external browser</b>. Or paste the link into ${br}. Your result opens there.</p>
+  </div>`;
+  document.body.style.overflow='hidden';
+  const close=()=>{ov.remove();document.body.style.overflow='';};
+  ov.querySelector('.sheet-x').onclick=close;
+  ov.onclick=e=>{if(e.target===ov)close();};
+  $('openExt').onclick=openExternal;
+}
+async function downloadImage(url){
+  try{
+    const blob=await blobFrom(url); const bu=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=bu;a.download=fileName();document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(bu),4000);
+    toast('Saved! Check your downloads or Photos.');
+  }catch(e){ saveSheet(url); }
+}
+$('saveImg').onclick=async()=>{
+  const url=await readyURL(); if(!url) return toast('Image not ready yet, try again in a second.');
+  if(IN_APP) return saveSheet(url);
+  downloadImage(url);
+};
 $('shareImg').onclick=async()=>{
-  const url=view==='card'?cardURL:rcptURL; if(!url) return;
+  const url=await readyURL(); if(!url) return toast('Image not ready yet, try again in a second.');
   try{const f=new File([await blobFrom(url)],fileName(),{type:'image/png'});
     if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:shareText()});return;}
   }catch(e){if(e&&e.name==='AbortError')return;}
-  $('saveImg').click();
+  if(IN_APP) return saveSheet(url);
+  downloadImage(url);
 };
 function shareText(){return mode==='battery'?`I’m ${res.n} ${res.emoji} ${res.nick}. ${res.tag} Which color are you? https://${quizURL()}`:`My attachment pattern: ${res.short||res.n} 💛 What’s yours? https://${quizURL()}`;}
-$('copyLink').onclick=()=>{const t=shareText();try{navigator.clipboard.writeText(t).then(()=>toast('Copied! Paste it in your group chat.'),()=>toast(t));}catch(e){toast(t);}};
+$('copyLink').onclick=()=>copyText(shareText(),'Copied! Paste it in your group chat.');
 function toast(t){$('toast').textContent=t;clearTimeout(toast.h);toast.h=setTimeout(()=>$('toast').textContent='',3500);}
 function confetti(){if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;const c=$('confetti');c.innerHTML='';const cols=['#FED178','#B8A1F0','#A7C4B6','#8EC5F0','#F2B6D8'];for(let k=0;k<40;k++){const e=document.createElement('i');e.style.left=Math.random()*100+'%';e.style.background=cols[k%5];e.style.animationDelay=Math.random()*.6+'s';e.style.transform=`rotate(${Math.random()*360}deg)`;c.appendChild(e);}setTimeout(()=>c.innerHTML='',3600);}
 
 // deep links: #battery or #attach
-try{if(location.hash==='#battery'||location.hash==='#attach') go(location.hash.slice(1));}catch(e){}
+try{
+  const h=location.hash, m=(location.search+'&').match(/[?&]r=(?:b(\d+)|a(\d+)-(\d+))&/);
+  if(m && (m[1]===undefined || BTYPES[+m[1]])){
+    if(m[1]!==undefined){mode='battery';res={...BTYPES[+m[1]]};resKey='b'+m[1];}
+    else{mode='attach';setAttach(Math.min(20,Math.max(4,+m[2])),Math.min(20,Math.max(4,+m[3])));}
+    $('home').hidden=true;$('quiz').hidden=true;$('result').hidden=false;renderResult();window.scrollTo(0,0);
+    try{history.replaceState(null,'',location.pathname);}catch(e){}  // don't keep ?r= in the address bar
+  }else if(h==='#battery'||h==='#attach') go(h.slice(1));
+}catch(e){}
 </script>
 </body>
 </html>
